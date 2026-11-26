@@ -1,0 +1,75 @@
+name: Sync Version Branch to Main & Build
+
+on:
+  push:
+    branches:
+      - 'v*'
+      - '[0-9]*.[0-9]*.[0-9]*'
+
+jobs:
+  sync-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout version branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 26
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: 'npm'
+
+      - name: Verify Node.js 26 installation
+        run: |
+          node -v
+          npm -v
+          node -e 'const major = Number(process.versions.node.split(".")[0]); if (major !== 26) { console.error("Expected Node 26, got", process.version); process.exit(1); }'
+
+      - name: Configure Git User
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync package.json version from branch name
+        run: |
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+          CLEAN_VERSION="${BRANCH_NAME#v}"
+
+          RESOLVED_VERSION=$(node -e '
+          const fs = require("fs");
+          const pkgPath = "./package.json";
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+          const targetVersion = process.argv[1];
+
+          if (/^\d+\.\d+\.\d+$/.test(targetVersion) && pkg.version !== targetVersion) {
+            pkg.version = targetVersion;
+            fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+          }
+          console.log(pkg.version);
+          ' "$CLEAN_VERSION")
+
+          echo "VERSION=$RESOLVED_VERSION" >> "$GITHUB_ENV"
+
+          if [[ -n "$(git status --porcelain package.json)" ]]; then
+            git add package.json
+            git commit -m "chore: set version to $RESOLVED_VERSION [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Override main with version branch
+        run: |
+          git push origin "HEAD:main" --force
+
+      - name: Install dependencies and build TypeScript
+        run: |
+          npm ci
+          test -n "$(find src -type f -name '*.ts' 2>/dev/null)" || {
+            echo "Error: No .ts files found under ./src"
+            exit 1
+          }
+          npm run build

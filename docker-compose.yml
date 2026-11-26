@@ -1,0 +1,44 @@
+services:
+  bot:
+    build:
+      context: .
+      target: runtime
+    container_name: discord-bot
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  github-runner:
+    build:
+      context: .
+      target: runtime
+    container_name: github-actions-runner
+    entrypoint: ["/runner/start-runner.sh"]
+    env_file:
+      - .env
+    environment:
+      REPO_URL: "https://github.com/YOUR_USER/YOUR_REPO"
+      RUNNER_TOKEN: "${RUNNER_TOKEN}"
+      RUNNER_NAME: "local-docker-runner"
+      RUNNER_LABELS: "self-hosted,node26"
+      RUNNER_WORK_DIR: "/runner/_work"
+    volumes:
+      - runner-work:/runner/_work
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  apache-proxy:
+    image: httpd:2.4-alpine
+    container_name: apache-proxy
+    restart: unless-stopped
+    networks:
+      - app-net
+
+volumes:
+  runner-work:
+
+networks:
+  app-net:
