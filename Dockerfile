@@ -3,13 +3,19 @@ FROM node:26-bookworm-slim AS bot-builder
 
 WORKDIR /build
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 RUN npm ci
 
 COPY tsconfig.json ./
-COPY src ./src
+COPY app ./app
 RUN npm run build
-RUN npm ci --omit=dev
+RUN npm prune --omit=dev
 
 # Stage 2: Runner binary stage
 FROM node:26-bookworm-slim AS runner-base
@@ -32,6 +38,8 @@ RUN ARCH_NAME=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "x64") && \
       "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${ARCH_NAME}-${RUNNER_VERSION}.tar.gz" && \
     tar xzf actions-runner.tar.gz && \
     rm actions-runner.tar.gz
+
+RUN sed -i 's/\r$//' /runner/start-runner.sh && chmod +x /runner/start-runner.sh
 
 # Stage 3: Final image containing /bot and /runner
 FROM runner-base AS runtime
@@ -76,4 +84,4 @@ fi
 exec /runner/run.sh
 EOF
 
-CMD ["node", "/bot/dist/index.js"]
+CMD ["node", "/bot/dist/app/src/index.js"]

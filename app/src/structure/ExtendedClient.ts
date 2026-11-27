@@ -7,8 +7,25 @@ export class ExtendedClient extends Client {
     constructor() {
         super({
             intents: [
-                GatewayIntentBits.Guilds,
+                GatewayIntentBits.AutoModerationConfiguration,
+                GatewayIntentBits.AutoModerationExecution,
+                GatewayIntentBits.DirectMessagePolls,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.DirectMessageReactions,
+                GatewayIntentBits.DirectMessageTyping,
+                GatewayIntentBits.GuildExpressions,
+                GatewayIntentBits.GuildIntegrations,
+                GatewayIntentBits.GuildInvites,
+                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.GuildMessagePolls,
+                GatewayIntentBits.GuildMessageReactions,
+                GatewayIntentBits.GuildMessageTyping,
                 GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.GuildScheduledEvents,
+                GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.GuildWebhooks,
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.MessageContent
             ],
         });
         this.commands = new Collection();

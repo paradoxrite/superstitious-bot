@@ -68,7 +68,7 @@ jobs:
       - name: Install dependencies and build TypeScript
         run: |
           npm ci
-          test -n "$(find src -type f -name '*.ts' 2>/dev/null)" || {
+          test -n "$(find app/src -type f -name '*.ts' 2>/dev/null)" || {
             echo "Error: No .ts files found under ./src"
             exit 1
           }

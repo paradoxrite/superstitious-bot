@@ -7,6 +7,8 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    volumes:
+      - bot-data:/bot/data
     networks:
       - app-net
 
@@ -19,7 +21,7 @@ services:
     env_file:
       - .env
     environment:
-      REPO_URL: "https://github.com/YOUR_USER/YOUR_REPO"
+      REPO_URL: "https://github.com/paradoxrite/superstitious-bot"
       RUNNER_TOKEN: "${RUNNER_TOKEN}"
       RUNNER_NAME: "local-docker-runner"
       RUNNER_LABELS: "self-hosted,node26"
@@ -39,6 +41,8 @@ services:
 
 volumes:
   runner-work:
+  bot-data:
 
 networks:
   app-net:
+    driver: bridge
