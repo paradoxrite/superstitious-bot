@@ -1,6 +1,6 @@
 {
   "name": "superstitious-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Modular TypeScript Discord.js bot for Mauu's Shrimp Town",
   "main": "dist/index.js",
   "scripts": {
